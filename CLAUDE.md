@@ -24,7 +24,8 @@
 
 - 이름 문구(11/4)와 **첫 덩어리(11/4)**를 마쳤다: `STAGES` 4단계·칸 설명·주제 예시·평가요소 이름, 단계 수에 묶인 곳은 `STAGES.length`로, 엔진은 이차함수 하나(`MODEL_PARAMS=["a","b","c"]`, `quadBody`), 단계마다 AI 칸(`AI_BLOCK`)과 위쪽 안내(`AI_NOTICE`), `DATA_GOAL=10`, 보고서 머리글.
 - **둘째 덩어리(11/4)**: `matrix` 도구(`mxSolve`·`gaussJordan`·`det3`, 분수 `QF`/소수 `FF`, 저장 `calc.pick`·`calc.mxShow`)와 `transform` 도구(`tfState`·`tfSVG`·`tfCalcHTML`, 저장 `calc.tf`·`calc.rep`·`calc.tfShow`). 변환 종류를 바꾸면 `data-rerender`로 화면을 다시 그린다. 행렬 LaTeX는 `texRows`(첨가행렬은 `\Bigg(`+`array`, 나머지는 `pmatrix`).
-- 남은 것: 채점 배점 30·30·20·20(아직 10점), `mathtool.js` 키보드.
+- **셋째 덩어리(11/4)**: 배점은 화면 `ELEMENT_MAX=[20,30,30,20]`·`LEVEL_PTS`(수준 A~E 점수)·`levelOf`와 서버 `GRD_MAX`·`GRD_LEVELS`(Code.gs) 두 곳에 같게 둔다. 채점 시트 머리글(`GRD_HEAD`) 요소 이름도 새 이름. 점수 저장 형식(`scores.s1~s4`)은 원본 그대로.
+- 남은 것: `mathtool.js` 키보드, 미제출·최저점 처리(학교 규정 확인 후).
 - 원본의 미분 변화율 표·구분구적법·도함수 그래프 코드(`rate`, `riemann*`, `derivCharts`, `logTry`)는 활동지에서 뺐지만 함수는 아직 남아 있다(쓰지 않음).
 - 아직 배포하지 않았다. 서버(Apps Script)·스프레드시트·GitHub 원격·Pages 주소 모두 없다. 학생 기록이 없으므로 지금은 칸 이름을 바꿔도 학생 영향이 없다(배포 전에 확정).
 

@@ -79,8 +79,9 @@ function writeGradeDoc_(id, g) {
   const nums = [1, 2, 3, 4].map(i => (sc['s' + i] === '' || sc['s' + i] == null) ? '' : Number(sc['s' + i]));
   body.appendParagraph('포물선과 선형변환 탐구 수행평가 · 평가 결과').setHeading(DocumentApp.ParagraphHeading.HEADING1);
   body.appendParagraph(`학번 ${sid || '–'} · 이름 ${name}`);
-  const rows = [['평가요소', '점수', '의견']].concat(els.map((e, i) => [e, nums[i] === '' ? '–' : String(nums[i]), String(notes['s' + (i + 1)] || '') || ' ']));
-  rows.push(['총점', String(nums.reduce((s, v) => s + (v === '' ? 0 : v), 0)), ' ']);
+  const lv = (i, v) => { const k = (GRD_LEVELS[GRD_MAX[i]] || []).indexOf(v); return v !== '' && k >= 0 ? 'ABCDE'[k] + ' · ' : ''; };   // 수준 점수와 같으면 "B · " 처럼
+  const rows = [['평가요소', '점수', '의견']].concat(els.map((e, i) => [e, (nums[i] === '' ? '–' : lv(i, nums[i]) + nums[i]) + ' / ' + GRD_MAX[i], String(notes['s' + (i + 1)] || '') || ' ']));
+  rows.push(['총점', nums.reduce((s, v) => s + (v === '' ? 0 : v), 0) + ' / ' + GRD_MAX.reduce((s, v) => s + v, 0), ' ']);
   const t = body.appendTable(rows); t.getRow(0).editAsText().setBold(true);
   body.appendParagraph('종합 피드백').setHeading(DocumentApp.ParagraphHeading.HEADING2);
   body.appendParagraph(String(g.overall || '') || '(없음)');
