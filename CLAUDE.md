@@ -78,8 +78,8 @@
 
 | 파일 | 역할 |
 |---|---|
-| `index.html` | 화면 전체. GitHub Pages로 배포 예정(주소 미정) |
-| `config.js` | `apiUrl` = Apps Script 웹 앱 주소(끝이 `/exec`). **지금은 비어 있다** |
+| `index.html` | 화면 전체. GitHub Pages: https://izzy2020-teach.github.io/algebra-assessment/ (저장소 Izzy2020-teach/algebra-assessment, main / root, push 후 1~2분 뒤 반영) |
+| `config.js` | `apiUrl` = Apps Script 웹 앱 주소(끝이 `/exec`). 서버는 g03535@cberi.go.kr 계정, 배포 ID `AKfycbw3_zWWdOd_vexJVgqSrYkXTrhEldBwGy3pt_aVlFA0vfbX00g1qNlhQcIU37NR8IlAVw` — 갱신은 항상 `clasp deploy -i <이 ID>` |
 | `mathtool.js` | 수식 입력기(MathLive 0.110.0, 필요할 때만 불러옴) + 갈래별 키보드 + 기호 그리기(기기 안에서 동작, API 없음) |
 | `apps-script/Code.gs` | 저장 서버. `doPost` JSON API, 계정·저장·채점·공지. 시트 `설정`·`계정`·`기록`·`채점`·`문서` |
 | `apps-script/Docs.gs` | 화면이 보낸 문서 명세(spec)를 구글 문서로 그리고 PDF로 내보냄. 문항이 바뀌어도 고칠 필요 없음 |
