@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>포물선과 선형변환 탐구</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Crect width=%2224%22 height=%2224%22 rx=%226%22 fill=%22%234F46E5%22/%3E%3Cpath d=%22M2 12c1.7-5 3.3-5 5 0s3.3 5 5 0 3.3-5 5 0 3.3 5 5 0%22 fill=%22none%22 stroke=%22white%22 stroke-width=%222.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
-<script src="config.js?v=202611041047"></script>
-<script src="mathtool.js?v=202611041047"></script>
+<script src="config.js?v=202611041100"></script>
+<script src="mathtool.js?v=202611041100"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
@@ -921,8 +921,8 @@ function toolHTML(doc,tool,ro){ const d=doc.data||{}, M=doc.models||{}, c=doc.ca
     <div class="legend"><span><i></i>자료</span><span><span class="sw" style="background:var(--accent)"></span> 모델 A</span><span><span class="sw" style="background:var(--modelB)"></span> 모델 B</span></div>
     ${EG_HELP}</div></div>`;
   // 둘째 덩어리에서 만들 도구 자리
-  case "matrix": return `<div class="tool"><div class="tool-h">🧮 행렬 확인 도구 <span>가우스 소거 · 행렬식 · 역행렬</span></div><div class="tool-b"><p class="sub" style="margin:0">도구를 준비하고 있습니다. 지금은 손계산 결과를 위 칸에 적어 두세요.</p></div></div>`;
-  case "transform": return `<div class="tool"><div class="tool-h">🧮 변환 그리기 도구 <span>좌표평면 · 합성 · 행렬식</span></div><div class="tool-b"><p class="sub" style="margin:0">도구를 준비하고 있습니다. 지금은 계산 결과를 칸에 적고, 문양은 직접 그려 [사진]으로 올리세요.</p></div></div>`;
+  case "matrix": return `<div class="tool"><div class="tool-h">🧮 행렬 확인 도구 <span>가우스 소거 · 행렬식 · 역행렬</span></div><div class="tool-b" style="display:grid;gap:10px"><div class="params" style="align-items:end" data-out="mxPick"></div><div data-out="mxOut" style="display:grid;gap:8px"></div></div></div>`;
+  case "transform": return tfToolHTML(doc,ro);
   case "rate": { const xs=c.x||[]; return `<div class="ratedefs" data-out="rateDefs"></div><div class="tbl-wrap"><table class="t"><thead><tr><th>알아볼 순간</th><th>${tx("$x=a$ 값")}</th><th>${tx("$f_A(a)$")}</th><th>${tx("$f_A'(a)$")}</th><th>${tx("$f_B(a)$")}</th><th>${tx("$f_B'(a)$")}</th></tr></thead><tbody>
     ${RATE_ROWS.map((r,i)=>`<tr><td class="lab"${tipAttr("s4_r"+i)}>${tx(r)}</td><td><div class="cell">${ro?`<div class="ro num">${esc(xs[i]||"")}</div>`:`<input class="num" id="t_calc_x_${i}" data-p="calc.x.${i}" value="${esc(xs[i]||"")}" placeholder=" " inputmode="decimal" aria-label="a 값">`}</div></td><td class="auto" data-out="r${i}f"></td><td class="auto" data-out="r${i}d"></td><td class="auto" data-out="r${i}bf"></td><td class="auto" data-out="r${i}b"></td></tr>`).join("")}
     </tbody></table></div>`; }
@@ -957,6 +957,8 @@ function updateOutputs(root,doc,owner){ const an=analyze(doc), $=s=>root.querySe
     put("xyInfo",`<div><span class="xyk">x</span> 가로축 · 독립변인: ${v(a.s1_xn,a.s1_xu)}</div><div><span class="xyk y">y</span> 세로축 · 종속변인: ${v(a.s1_yn,a.s1_yu)}</div><div class="sub">1단계 ② 변인 정하기에서 쓴 내용이 연결됩니다. ${editing?`<button type="button" class="linkbtn" data-goto="vars">1단계에서 바꾸기 →</button>`:""}</div>`); }
   put("dgCount",`자료 <b class="${an.pts.length>=DATA_GOAL?"ok":"warn"}">${an.pts.length}</b>개 / 목표 ${DATA_GOAL}개 이상`); dgMarks(root,doc);
   const F=(doc.files||{}).data; put("upData",F?`<div class="sub">✔ ${esc(F.name)} · ${kb(F.size)} · ${ago(F.at)}${ME&&ME.role==="teacher"&&F.url?` · <a href="${esc(F.url)}" target="_blank" rel="noopener">열기 ↗</a>`:""}</div>`:`<div class="sub">아직 올린 파일이 없습니다.</div>`);
+  if($("mxOut").length){ put("mxPick",mxPickHTML(doc,!editing)); put("mxOut",mxOutHTML(doc,!editing)); }
+  if($("tfSvg").length){ put("tfSvg",tfSVG(doc)); put("tfCalc",tfCalcHTML(doc,!editing)); put("tfRep",String(tfState(doc).rep)); }
   put("dash",dashHTML(doc)); put("files",filesHTML(doc));
   const T=doc.tools||{}; $("aibox").forEach(e=>e.classList.toggle("on",!!T.ai));
   root.querySelectorAll("[data-auto]").forEach(e=>{ const v=autoVal(doc,e.dataset.auto,an); e.innerHTML=v?tx(v):"–"; });
@@ -1146,6 +1148,136 @@ function parseNum(v){ let s=String(v??"").trim().replace(/^\$|\$$/g,"").replace(
   const f=s.match(/^(-?)\\d?frac\{(-?[\d.]+)\}\{(-?[\d.]+)\}$/); if(f) return (f[1]?-1:1)*f[2]/f[3];
   return isNum(s)?+s:NaN; }
 
+/* ── 2단계 행렬 확인 도구: 세 점 → AX=B, 가우스 소거법 단계, 행렬식, 역행렬 ── */
+// 좌표가 모두 소수 셋째 자리까지이면 분수로 정확히(BigInt) 계산하고, 아니면 소수로 계산합니다.
+const bgcd=(a,b)=>{ a=a<0n?-a:a; b=b<0n?-b:b; while(b){ [a,b]=[b,a%b]; } return a; };
+function Q(n,d=1n){ if(d<0n){ n=-n; d=-d; } const g=bgcd(n,d)||1n; return {n:n/g,d:d/g}; }
+const qAbs=n=>n<0n?-n:n;
+const QF={ zero:Q(0n), one:Q(1n), add:(a,b)=>Q(a.n*b.d+b.n*a.d,a.d*b.d), mul:(a,b)=>Q(a.n*b.n,a.d*b.d), neg:a=>Q(-a.n,a.d), div:(a,b)=>Q(a.n*b.d,a.d*b.n),
+  isZero:a=>a.n===0n, isOne:a=>a.n===a.d, num:a=>Number(a.n)/Number(a.d),
+  txt:a=>(a.n<0n?"−":"")+(a.d===1n?String(qAbs(a.n)):`${qAbs(a.n)}/${a.d}`),
+  tex:a=>a.d===1n?String(a.n):`${a.n<0n?"-":""}\\frac{${qAbs(a.n)}}{${a.d}}` };
+const cl0=v=>Math.abs(v)<1e-12?0:v;
+const FF={ zero:0, one:1, add:(a,b)=>a+b, mul:(a,b)=>a*b, neg:a=>-a, div:(a,b)=>a/b, isZero:a=>Math.abs(a)<1e-12, isOne:a=>Math.abs(a-1)<1e-12, num:a=>a,
+  txt:a=>fmt(cl0(a),4), tex:a=>fmt(cl0(a),4).replace("−","-") };
+/** 숫자 → 분수 (소수 셋째 자리까지만, 아니면 null) */
+function toQ(v){ const s=String(v); if(!/^-?\d+(\.\d{1,3})?$/.test(s)) return null; const neg=s.startsWith("-"), [i,f=""]=s.replace("-","").split(".");
+  return Q(BigInt(i+f)*(neg?-1n:1n),10n**BigInt(f.length)); }
+/** 자료표에서 고른 세 점 (calc.pick에 "x|y"로 저장). 없거나 자료가 바뀌어 사라졌으면 null */
+function mxPoints(doc){ const an=analyze(doc), pk=((doc.calc||{}).pick)||{};
+  return [0,1,2].map(i=>{ const v=String(pk[i]||""); return an.pts.find(p=>`${p.x}|${p.y}`===v)||null; }); }
+/** 가우스-조르당 소거. 교과서처럼 '(2행) → (−4)×(1행)+(2행)' 꼴로 단계를 남깁니다. */
+function gaussJordan(F,M){ const n=M.length, A=M.map(r=>r.slice()), steps=[], cp=()=>A.map(r=>r.slice()), nm=k=>`(${k+1}행)`;
+  for(let j=0;j<n;j++){ let p=-1; for(let i=j;i<n;i++) if(!F.isZero(A[i][j])){ p=i; break; }
+    if(p<0) return {steps,singular:true,A};
+    if(p!==j){ [A[p],A[j]]=[A[j],A[p]]; steps.push({op:`${nm(j)} ↔ ${nm(p)}`,M:cp()}); }
+    if(!F.isOne(A[j][j])){ const k=F.div(F.one,A[j][j]); A[j]=A[j].map(v=>F.mul(k,v)); steps.push({op:`${nm(j)} → (${F.txt(k)})×${nm(j)}`,M:cp()}); }
+    const ops=[]; for(let i=0;i<n;i++){ if(i===j||F.isZero(A[i][j])) continue; const k=F.neg(A[i][j]); A[i]=A[i].map((v,c)=>F.add(v,F.mul(k,A[j][c]))); ops.push(`${nm(i)} → (${F.txt(k)})×${nm(j)}+${nm(i)}`); }
+    if(ops.length) steps.push({op:ops.join(" , "),M:cp()}); }
+  return {steps,singular:false,A}; }
+function det3(F,A){ const t=(a,b,c)=>F.mul(F.mul(a,b),c), [r0,r1,r2]=A;
+  return [t(r0[0],r1[1],r2[2]),t(r0[1],r1[2],r2[0]),t(r0[2],r1[0],r2[1]),F.neg(t(r0[2],r1[1],r2[0])),F.neg(t(r0[0],r1[2],r2[1])),F.neg(t(r0[1],r1[0],r2[2]))].reduce((s,v)=>F.add(s,v),F.zero); }
+/** 행렬 → LaTeX. bar가 있으면 그 열 앞에 세로줄(첨가행렬). MathLive에서 \left( 를 쓰면 괄호가 너무 커서 \Bigg( 를 씁니다(3행 기준) */
+const texRows=(F,M,bar)=>{ const body=M.map(r=>r.map(F.tex).join("&")).join("\\\\ ");
+  return bar?`\\Bigg(\\begin{array}{${M[0].map((_,c)=>c===bar?"|c":"c").join("")}}${body}\\end{array}\\Bigg)`:`\\begin{pmatrix}${body}\\end{pmatrix}`; };
+function mxSolve(doc){ const pts=mxPoints(doc); if(pts.some(p=>!p)) return {need:true};
+  const exact=pts.every(p=>toQ(p.x)&&toQ(p.y)), F=exact?QF:FF, cv=v=>exact?toQ(v):v;
+  const A=pts.map(p=>{ const x=cv(p.x); return [F.mul(x,x),x,F.one]; }), B=pts.map(p=>cv(p.y)), aug=A.map((r,i)=>[...r,B[i]]), det=det3(F,A);
+  if(F.isZero(det)) return {F,pts,A,B,aug,det,singular:true};
+  const g=gaussJordan(F,aug), I=[0,1,2].map(i=>[0,1,2].map(j=>i===j?F.one:F.zero));
+  const inv=gaussJordan(F,A.map((r,i)=>[...r,...I[i]])).A.map(r=>r.slice(3));
+  return {F,pts,A,B,aug,det,singular:false,steps:g.steps,inv,sol:g.A.map(r=>r[3])}; }
+function mxPickHTML(doc,ro){ const an=analyze(doc), pk=((doc.calc||{}).pick)||{}, dis=ro?" disabled":"";
+  if(an.pts.length<3) return `<p class="sub" style="margin:0">위 자료표에 점을 3개 이상 넣으면 세 점을 고를 수 있습니다.</p>`;
+  return [0,1,2].map(i=>`<label class="mini pform">점 ${i+1}<select data-p="calc.pick.${i}" aria-label="점 ${i+1}"${dis}><option value="">고르기</option>${an.pts.map((p,j)=>{ const v=`${p.x}|${p.y}`;
+    return `<option value="${esc(v)}"${String(pk[i]||"")===v?" selected":""}>${j+1}번 (${fmt(p.x)}, ${fmt(p.y)})</option>`; }).join("")}</select></label>`).join("")+`<span class="sub">번호는 x가 작은 순서입니다.</span>`; }
+function mxOutHTML(doc,ro){ const c=doc.calc||{}, S=mxSolve(doc), isT=ME&&ME.role==="teacher";
+  if(S.need) return `<p class="sub" style="margin:0">위에서 세 점을 고르면 확인할 수 있습니다.</p>`;
+  if(!c.mxShow&&!ro) return `<div><button class="btn pri" type="button" data-act="mxCheck">손계산을 다 적었어요 · 확인하기</button></div><p class="sub" style="margin:0">먼저 위 칸에 가우스 소거법·행렬식·역행렬을 직접 적은 뒤 누르세요. 누른 시각이 기록됩니다.</p>`;
+  if(!c.mxShow&&!isT) return `<p class="sub" style="margin:0">확인하기를 누르지 않았습니다.</p>`;
+  const F=S.F, T=v=>tx(`$${v}$`);
+  let h=c.mxShow?`<p class="sub" style="margin:0">✔ 확인한 시각: ${ago(c.mxShow)}</p>`:`<p class="sub" style="margin:0">학생이 아직 [확인하기]를 누르지 않았습니다. (교사 화면에만 결과가 보입니다)</p>`;
+  h+=`<div>${T(`A=${texRows(F,S.A)},\\quad B=${texRows(F,S.B.map(v=>[v]))}`)}</div>`;
+  h+=`<div><b>행렬식</b> ${T(`\\det A=${F.tex(S.det)}`)} ${S.singular?"→ <b>0이므로 역행렬이 없고, 포물선이 하나로 정해지지 않습니다.</b> x좌표가 같은 점을 골랐는지 확인하세요.":"→ 0이 아니므로 역행렬이 있고, 해가 하나로 정해집니다."}</div>`;
+  if(S.singular) return h;
+  h+=`<div><b>가우스 소거법</b> · 첨가행렬 ${T("(A\\,|\\,B)")}에서 시작</div><ol style="margin:0;padding-left:1.4em;display:grid;gap:6px"><li>${T(texRows(F,S.aug,3))}</li>${S.steps.map(s=>`<li><span class="sub">${esc(s.op)}</span><br>${T(texRows(F,s.M,3))}</li>`).join("")}</ol>`;
+  h+=`<div><b>역행렬</b> ${T(`A^{-1}=${texRows(F,S.inv)}`)}</div>`;
+  h+=`<div><b>해</b> ${T(`X=A^{-1}B,\\quad a=${F.tex(S.sol[0])},\\ b=${F.tex(S.sol[1])},\\ c=${F.tex(S.sol[2])}`)}</div>`;
+  if(!ro) h+=`<div><button class="btn" type="button" data-act="mxToModel">이 a, b, c를 모델 A에 넣기</button></div>`;
+  return h; }
+
+/* ── 3단계 변환 그리기 도구: 변환 1→2→3, 반복, 합성·역변환·넓이 ── */
+const TF_KINDS=[["","(고르지 않음)"],["rx","x축 대칭"],["ry","y축 대칭"],["ro","원점 대칭"],["rxy","직선 y=x 대칭"],["sc","닮음변환"],["rot","회전변환"],["mat","행렬 직접 입력"]];
+const TF_COLORS=["#2563EB","#DB2777","#059669","#EA580C","#7C3AED","#0891B2","#CA8A04","#DC2626","#4F46E5","#16A34A","#9333EA","#0EA5E9"];
+const I2=[[1,0],[0,1]];
+const mul2=(B,A)=>[[B[0][0]*A[0][0]+B[0][1]*A[1][0],B[0][0]*A[0][1]+B[0][1]*A[1][1]],[B[1][0]*A[0][0]+B[1][1]*A[1][0],B[1][0]*A[0][1]+B[1][1]*A[1][1]]].map(r=>r.map(cl0));
+const det2=M=>cl0(M[0][0]*M[1][1]-M[0][1]*M[1][0]);
+const inv2=M=>{ const d=det2(M); return d===0?null:[[M[1][1]/d,-M[0][1]/d],[-M[1][0]/d,M[0][0]/d]].map(r=>r.map(cl0)); };
+const ap2=(M,p)=>({x:cl0(M[0][0]*p.x+M[0][1]*p.y),y:cl0(M[1][0]*p.x+M[1][1]*p.y)});
+const nt=v=>fmt(cl0(v),4).replace("−","-");
+const tex2=M=>`\\begin{pmatrix}${M.map(r=>r.map(nt).join("&")).join("\\\\ ")}\\end{pmatrix}`;
+const triArea=t=>Math.abs(t[0].x*(t[1].y-t[2].y)+t[1].x*(t[2].y-t[0].y)+t[2].x*(t[0].y-t[1].y))/2;
+function tfItems(doc){ const tf=(doc.calc||{}).tf||{}; return [0,1,2].map(i=>tf[i]||{}); }
+function tfMat(t){ const v=N(t.v,NaN);
+  switch(t.k){ case "rx": return [[1,0],[0,-1]]; case "ry": return [[-1,0],[0,1]]; case "ro": return [[-1,0],[0,-1]]; case "rxy": return [[0,1],[1,0]];
+    case "sc": return isFinite(v)?[[v,0],[0,v]]:null;
+    case "rot": { if(!isFinite(v)) return null; const r=v*Math.PI/180, c=cl0(Math.cos(r)), s=cl0(Math.sin(r)); return [[c,-s],[s,c]]; }
+    case "mat": { const m=t.m||{}, a=[0,1,2,3].map(i=>N(m[i],NaN)); return a.every(isFinite)?[[a[0],a[1]],[a[2],a[3]]]:null; } }
+  return null; }
+function tfName(t){ const k=TF_KINDS.find(x=>x[0]===(t.k||"")); if(!t.k||!k) return ""; return k[1]+(t.k==="sc"?` (k = ${t.v??""})`:t.k==="rot"?` (θ = ${t.v??""}°)`:""); }
+function tfState(doc){ const an=analyze(doc), c=doc.calc||{}, act=tfItems(doc).map((t,i)=>({i,t,M:tfMat(t)})).filter(o=>o.M);
+  let M=I2, R=I2; act.forEach(o=>{ M=mul2(o.M,M); R=mul2(R,o.M); });   // M: 변환 1 다음 2 다음 3 (행렬은 거꾸로 곱함), R: 곱하는 순서를 바꾼 것
+  const rep=Math.max(1,Math.min(12,Math.round(N(c.rep,1))));
+  let tri=mxPoints(doc); if(tri.some(p=>!p)){ const P=an.pts; tri=P.length>=3?[P[0],P[Math.floor(P.length/2)],P[P.length-1]]:null; }
+  let curve=null; if(an.A.ok){ const xs=(an.pts.length?an.pts:(tri||[])).map(p=>p.x); let x1=xs.length?Math.min(...xs):-2, x2=xs.length?Math.max(...xs):2; if(x1===x2){ x1-=1; x2+=1; }
+    curve=[...Array(81)].map((_,i)=>{ const x=x1+(x2-x1)*i/80; return {x,y:fval(an.A,x)}; }).filter(p=>isFinite(p.y)); }
+  return {an,act,M,R,rep,tri,curve}; }
+/** 변환 그림. 가로·세로 눈금 간격을 같게(회전이 찌그러지지 않게) 정사각형 판에 그립니다. 보고서 그림(PNG)도 이것을 씁니다. */
+function tfSVG(doc){ const S=tfState(doc); if(!S.curve&&!S.tri) return `<div class="empty-note">2단계에서 자료를 넣고 모델 A를 정하면 곡선이 그려집니다.</div>`;
+  const shapes=[{M:I2,col:"#18272B",lab:"처음 곡선",w:2.6}];
+  if(S.rep<=1){ let P=I2; S.act.forEach((o,k)=>{ P=mul2(o.M,P); shapes.push({M:P,col:TF_COLORS[k],lab:`변환 ${S.act.slice(0,k+1).map(x=>x.i+1).join("→")} 뒤`}); }); }
+  else { let P=I2; for(let r=1;r<=S.rep;r++){ P=mul2(S.M,P); shapes.push({M:P,col:TF_COLORS[(r-1)%TF_COLORS.length],lab:`${r}번 적용`}); } }
+  const geo=shapes.map(s=>({...s,c:S.curve?S.curve.map(p=>ap2(s.M,p)):null,t:S.tri?S.tri.map(p=>ap2(s.M,p)):null}));
+  const all=[{x:0,y:0}]; geo.forEach(s=>{ (s.c||[]).forEach(p=>all.push(p)); (s.t||[]).forEach(p=>all.push(p)); });
+  let x1=Math.min(...all.map(p=>p.x)), x2=Math.max(...all.map(p=>p.x)), y1=Math.min(...all.map(p=>p.y)), y2=Math.max(...all.map(p=>p.y));
+  const span=Math.max(x2-x1,y2-y1,1)*1.08, cx=(x1+x2)/2, cy=(y1+y2)/2; x1=cx-span/2; y1=cy-span/2;
+  const W=640,H=320,Z=290,L=40,Tp=8, sx=x=>L+(x-x1)/span*Z, sy=y=>Tp+Z-(y-y1)/span*Z, pt=p=>sx(p.x).toFixed(1)+","+sy(p.y).toFixed(1);
+  let g=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="변환 그림"><rect x="${L}" y="${Tp}" width="${Z}" height="${Z}" fill="#fff" stroke="#D5DEDC"/>`;
+  ticks(x1,x1+span,6).forEach(v=>{ const X=sx(v); g+=`<line x1="${X}" x2="${X}" y1="${Tp}" y2="${Tp+Z}" stroke="#EEF2F1"/><text x="${X}" y="${Tp+Z+13}" text-anchor="middle">${fmt(v,3)}</text>`; });
+  ticks(y1,y1+span,6).forEach(v=>{ const Y=sy(v); g+=`<line x1="${L}" x2="${L+Z}" y1="${Y}" y2="${Y}" stroke="#EEF2F1"/><text x="${L-5}" y="${Y+4}" text-anchor="end">${fmt(v,3)}</text>`; });
+  g+=`<line x1="${sx(0)}" x2="${sx(0)}" y1="${Tp}" y2="${Tp+Z}" stroke="#94A3B8"/><line x1="${L}" x2="${L+Z}" y1="${sy(0)}" y2="${sy(0)}" stroke="#94A3B8"/>`;
+  geo.forEach(s=>{ if(s.c&&s.c.length) g+=`<path d="${s.c.map((p,i)=>(i?"L":"M")+pt(p)).join("")}" fill="none" stroke="${s.col}" stroke-width="${s.w||1.8}"/>`;
+    if(s.t) g+=`<polygon points="${s.t.map(pt).join(" ")}" fill="${s.col}" fill-opacity=".1" stroke="${s.col}" stroke-width="1" stroke-dasharray="4 3"/>`; });
+  geo.forEach((s,k)=>{ const Y=Tp+12+k*21; g+=`<line x1="356" x2="384" y1="${Y}" y2="${Y}" stroke="${s.col}" stroke-width="3"/><text x="392" y="${Y+4}">${esc(s.lab)}</text>`; });
+  g+=`<text x="356" y="${H-24}">점선 삼각형: 고른 세 점</text><text x="356" y="${H-8}">가로·세로 눈금 간격이 같습니다</text>`;
+  return g+`</svg>`; }
+function tfCalcHTML(doc,ro){ const S=tfState(doc), c=doc.calc||{}, T=v=>tx(`$${v}$`);
+  if(!S.act.length) return `<p class="sub" style="margin:0">변환을 하나 이상 고르면 계산 결과를 볼 수 있습니다.</p>`;
+  const show=ro||c.tfShow, btn=ro?"":`<div><button class="btn" type="button" data-act="tfShow">${show?"계산 결과 접기":"손계산을 다 적었어요 · 계산 결과 펼치기"}</button></div>`;
+  if(!show) return btn;
+  const rows=S.act.map(o=>[`변환 ${o.i+1} · ${esc(tfName(o.t))}`,T(`M_${o.i+1}=${tex2(o.M)},\\quad \\det M_${o.i+1}=${nt(det2(o.M))}`)]);
+  if(S.act.length>1){ const same=S.M.every((r,i)=>r.every((v,j)=>Math.abs(v-S.R[i][j])<1e-9));
+    rows.push([`합성: 변환 ${S.act.map(o=>o.i+1).join(" 다음 ")}`,T(`${S.act.map(o=>`M_${o.i+1}`).reverse().join("")}=${tex2(S.M)}`)]);
+    rows.push(["곱하는 순서를 바꾸면",T(`${S.act.map(o=>`M_${o.i+1}`).join("")}=${tex2(S.R)}`)+(same?" → 같습니다":" → <b>다릅니다</b>")]); }
+  const d=det2(S.M), Mi=inv2(S.M);
+  rows.push(["합성 변환의 행렬식",T(`\\det=${nt(d)}`)]);
+  rows.push(["역변환의 행렬",Mi?T(tex2(Mi)):"행렬식이 0이라 역행렬(역변환)이 없습니다."]);
+  if(S.tri){ const p=S.tri[0], q=ap2(S.M,p), b=Mi?ap2(Mi,q):null, P=v=>T(`(${nt(v.x)},\\ ${nt(v.y)})`);
+    rows.push(["점 되돌리기",`${P(p)} → 옮긴 점 ${P(q)}${b?` → 역변환으로 ${P(b)}`:""}`]);
+    const a0=triArea(S.tri), a1=triArea(S.tri.map(v=>ap2(S.M,v)));
+    rows.push(["삼각형 넓이 (고른 세 점)",`처음 ${fmt(a0,4)} → 옮긴 뒤 ${fmt(a1,4)} · 넓이의 비 ${a0?fmt(a1/a0,4):"–"} · ${T(`|\\det|=${nt(Math.abs(d))}`)}`]); }
+  if(S.rep>1){ let P=I2; for(let r=0;r<S.rep;r++) P=mul2(S.M,P); rows.push([`${S.rep}번 거듭 적용`,T(`M^{${S.rep}}=${tex2(P)}`)]); }
+  return btn+`<div class="tbl-wrap"><table class="t"><tbody>${rows.map(([l,v])=>`<tr><td class="lab">${l}</td><td>${v}</td></tr>`).join("")}</tbody></table></div>`; }
+function tfToolHTML(doc,ro){ const dis=ro?" disabled":"", rep=tfState(doc).rep;
+  const rowsH=tfItems(doc).map((t,i)=>{ const P=`calc.tf.${i}`;
+    const inp=(p,v,lab,w)=>`<label class="mini">${tx(lab)}<input data-p="${P}.${p}" value="${esc(v??"")}" placeholder=" " inputmode="decimal" autocomplete="off" style="width:${w||"5.5em"}"${dis}></label>`;
+    let extra=""; if(t.k==="sc") extra=inp("v",t.v,"닮음비 $k$"); else if(t.k==="rot") extra=inp("v",t.v,"각 $\\theta$ (도)");
+    else if(t.k==="mat"){ const m=t.m||{}; extra=`<span class="sub">${tx("$\\begin{pmatrix}p&q\\\\ r&s\\end{pmatrix}$")}</span>`+["p","q","r","s"].map((l,j)=>inp("m."+j,m[j],`$${l}$`,"4em")).join(""); }
+    return `<div class="params" style="align-items:end"><label class="mini pform">변환 ${i+1}<select data-p="${P}.k" data-rerender="1" aria-label="변환 ${i+1}"${dis}>${TF_KINDS.map(([k,l])=>`<option value="${k}"${(t.k||"")===k?" selected":""}>${l}</option>`).join("")}</select></label>${extra}</div>`; }).join("");
+  return `<div class="tool"><div class="tool-h">🧮 변환 그리기 도구 <span>변환 1 → 2 → 3 차례로 · 검은 선이 처음 곡선</span></div><div class="tool-b" style="display:grid;gap:10px">${rowsH}
+    <label class="mini">반복 횟수 <b data-out="tfRep">${rep}</b>번<input type="range" min="1" max="12" step="1" data-p="calc.rep" value="${rep}" aria-label="반복 횟수"${dis}></label>
+    <p class="sub" style="margin:0">반복이 1번이면 변환 1, 2, 3을 차례로 적용한 모습을, 2번 이상이면 합성 변환 전체를 그 횟수만큼 거듭 적용한 모습을 그립니다. 예: 60° 회전을 6번 반복하면 눈결정 모양이 됩니다.</p>
+    <div data-out="tfSvg"></div><div data-out="tfCalc" style="display:grid;gap:8px"></div></div></div>`; }
 /* ───────── 결과물 문서 (구글 문서 · PDF) ───────── */
 // 활동지(STAGES)와 학생 답을 "문서 명세"로 바꿔 서버에 보내면, 서버가 활동지 서식의 구글 문서로 그립니다.
 const DOC_HEADER=["2026학년도 2학기 고급 대수 · 수행평가","포물선과 선형변환 탐구","학생 활동지 겸 탐구 보고서 · 3~4차시"];
@@ -1178,6 +1310,15 @@ function buildSpec(doc,acct){
       return [auto([["고른 모델",`모델 ${S.m} ${ftex(m)}`],["적분 구간 $[p,q]$",isNum(S.p)&&isNum(S.q)?`[${S.p}, ${S.q}]`:""],["직사각형 개수 · 높이 위치",`${S.n}개 · ${RM_POS.find(x=>x[0]===S.pos)[1]}`],["직사각형 넓이의 합 $S_n$",fmt(sm,5)],["도구로 구한 정적분 값",fmt(ex,5)]]),
         {t:"table",cols:["$n$","왼쪽 끝점","오른쪽 끝점","가운데 점"],rows:[4,10,50,100].map(n=>[String(n),...["left","right","mid"].map(ps=>fmt(riemannSum(m,S.p,S.q,n,ps),5))])},
         img(riemannSVG(doc,an),"구분구적법: 직사각형 넓이의 합으로 곡선 아래 넓이 어림")]; }
+    case "matrix": { const S=mxSolve(doc); if(S.need) return [auto([["행렬 확인 도구","(세 점을 고르지 않음)"]])];
+      const F=S.F, rows=[["고른 세 점",S.pts.map(p=>`(${fmt(p.x)}, ${fmt(p.y)})`).join(", ")],["확인하기를 누른 시각",c.mxShow?new Date(c.mxShow).toLocaleString("ko-KR"):"(누르지 않음)"],
+        ["$A$, $B$",`$A=${texRows(F,S.A)}$, $B=${texRows(F,S.B.map(v=>[v]))}$`],["행렬식",`$\\det A=${F.tex(S.det)}$`]];
+      if(!S.singular) rows.push(["역행렬",`$A^{-1}=${texRows(F,S.inv)}$`],["해",`$a=${F.tex(S.sol[0])},\\ b=${F.tex(S.sol[1])},\\ c=${F.tex(S.sol[2])}$`]);
+      return [auto(rows)]; }
+    case "transform": { const S=tfState(doc); if(!S.act.length) return [auto([["변환 그리기 도구","(고른 변환 없음)"]])];
+      const rows=S.act.map(o=>[`변환 ${o.i+1}`,`${tfName(o.t)} $M_${o.i+1}=${tex2(o.M)}$`]);
+      rows.push(["합성 변환의 행렬",`$${S.act.map(o=>`M_${o.i+1}`).reverse().join("")}=${tex2(S.M)}$, $\\det=${nt(det2(S.M))}$`],["반복 횟수",String(S.rep)]);
+      const svg=tfSVG(doc); return [auto(rows),...(svg.startsWith("<svg")?[img(svg,"변환 그리기: 검은 선은 처음 곡선, 색 선은 변환한 곡선, 점선 삼각형은 고른 세 점")]:[])]; }
     case "errTable": { const eA=an.eA, eB=an.eB, cell=(e,fn)=>e?fn(e):"–";
       return [{t:"table",cols:["비교 항목","모델 A","모델 B"],rows:[["평균 오차율 (%)",e=>fmt(e.mean,2)],["가장 큰 오차율 (%)과 그때의 x",e=>`${fmt(e.max,2)} (x = ${fmt(e.maxX)})`],["평균 제곱근 오차 $\\sqrt{\\dfrac{1}{n}\\sum_{i=1}^{n}\\left(y_i-f(x_i)\\right)^2}$ (y 단위)",e=>fmt(e.rmse,3)],["평균 오차",e=>fmt(e.me,3)],["오차 (+) / (−) 개수",e=>`${e.pos} / ${e.neg}`]].map(([l,fn])=>[l,cell(eA,fn),cell(eB,fn)])}]; }
     case "errChart": return [img(chartSVG(an,{xl,residual:true,id:"p3"}),"오차 = 실측 − 모델 · 파란색: 모델 A · 주황색: 모델 B · 점선: ±1 기준선 (1 초과는 로그 눈금으로 줄임)")];
@@ -1235,7 +1376,7 @@ async function downloadPdf(btn){ const old=btn.textContent; btn.disabled=true; b
   btn.disabled=false; btn.textContent=old; updateDocSt(); }
 
 /* ───────── 서버 연결 (구글 Apps Script 웹 앱, config.js의 apiUrl) ───────── */
-const APP_VER="202611041047"; // build:2914c690  ← node tools/build-gas.js 가 채웁니다(화면 파일이 바뀔 때만 새 번호)
+const APP_VER="202611041100"; // build:ea6380b1  ← node tools/build-gas.js 가 채웁니다(화면 파일이 바뀔 때만 새 번호)
 const API_URL=String((window.APP_CONFIG&&window.APP_CONFIG.apiUrl)||"").trim();
 let TOKEN=null; try{ TOKEN=localStorage.getItem("mt_token"); }catch(e){}
 const ERR={SESSION:"로그인이 끝났습니다. 다시 로그인해 주세요.",CONSENT_SIGN:"서명을 저장하지 못했습니다. [다시 쓰기]를 누르고 서명해 주세요.",CONSENT_VER:"동의서가 바뀌었습니다. 새로고침한 뒤 다시 동의해 주세요.",CONSENT_AGREE:"동의 칸에 체크해 주세요.",BAD_ID:"학생 아이디는 한글 이름(2~10자)만 쓸 수 있습니다. 영문·숫자·띄어쓰기는 쓸 수 없습니다.",BAD_ID_T:"교사 아이디는 한글·영문·숫자와 _ . - 로 2~20자입니다.",BAD_SID:"학번은 숫자 5자리로 써 주세요 (예: 20421).",BAD_PW:"비밀번호는 4자 이상이어야 합니다.",DUP_ID:"같은 이름으로 이미 가입한 학생이 있습니다. 선생님께 알려 주세요.",
@@ -1497,7 +1638,9 @@ app.addEventListener("input",e=>{ const t=e.target; if(view!=="student"||!ME||!t
   if(/^(data|models|calc)\.|^ans\.(s1_[xy][nu]|s4_r\d|s1_card)$/.test(t.dataset.p)) updateOutputs(app,me); refreshTabs(); });
 app.addEventListener("change",e=>{ const t=e.target; if(view!=="student"||!ME||!t.dataset.p) return; if(locked()) return;
   if(t.type==="checkbox"){ setP(me,t.dataset.p,t.checked); scheduleSave(); return; }
-  if(t.tagName==="SELECT"){ setP(me,t.dataset.p,t.value); scheduleSave(); updateOutputs(app,me); refreshTabs(); } });
+  if(t.tagName==="SELECT"){ setP(me,t.dataset.p,t.value); scheduleSave();
+    if(t.dataset.rerender){ renderStudent.keepScroll=true; renderStudent(); return; }   // 변환 종류가 바뀌면 입력칸(k, θ, 행렬)이 달라집니다
+    updateOutputs(app,me); refreshTabs(); } });
 app.addEventListener("click",e=>{ const t=e.target.closest("button"); if(!t) return;
   if(t.dataset.auth){ authMode=t.dataset.auth; renderAuth(); return; }
   if(t.dataset.act==="pwCancel"){ enterApp(); return; }
@@ -1518,6 +1661,10 @@ app.addEventListener("click",e=>{ const t=e.target.closest("button"); if(!t) ret
     const pv=["a","b","c","d","e","g"].filter(p=>isNum(m[p])).map(p=>`${p}=${m[p]}`).join(", ");
     me.ans["s3_t"+k+"p"]=`모델 ${K} · ${m.t}: ${pv}`; me.ans["s3_t"+k+"e"]=e?fmt(e.mean,2):"";
     ["p","e"].forEach(s=>{ const el=document.getElementById("f_s3_t"+k+s); if(el) el.value=me.ans["s3_t"+k+s]; }); scheduleSave(); refreshTabs(); setSave("ok",`모델 ${K} 값을 맞추기 기록 ${k}번에 넣었습니다`); return; }
+  if(act==="mxCheck"){ if(locked()) return; me.calc=me.calc||{}; me.calc.mxShow=Date.now(); scheduleSave(); updateOutputs(app,me); return; }
+  if(act==="mxToModel"){ if(locked()) return; const S=mxSolve(me); if(S.need||S.singular) return; const v=k=>String(+S.F.num(S.sol[k]).toPrecision(10));
+    me.models=me.models||{}; me.models.A={t:"이차함수",a:v(0),b:v(1),c:v(2)}; scheduleSave(); renderStudent.keepScroll=true; renderStudent(); setSave("ok","행렬로 구한 a, b, c를 모델 A에 넣었습니다"); return; }
+  if(act==="tfShow"){ if(locked()) return; me.calc=me.calc||{}; me.calc.tfShow=!me.calc.tfShow; scheduleSave(); updateOutputs(app,me); return; }
   if(act==="pdf"){ downloadPdf(t); return; }
   if(act==="docNow"){ docDirty=true; syncDocNow(); return; }
   if(act==="submit1"){ confirmSubmit=true; updateOutputs(app,me); return; }
