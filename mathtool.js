@@ -111,28 +111,27 @@
       ["+", "+"], ["−", "-"], ["×", "\\times"], ["÷", "\\div"], ["·", "\\cdot"], ["±", "\\pm"],
       ["=", "="], ["≠", "\\ne"], ["≈", "\\approx"], ["<", "<"], [">", ">"], ["≤", "\\le"], ["≥", "\\ge"], ["%", "\\%"]
     ],
-    "삼각함수": [
-      ["sin", "\\sin"], ["cos", "\\cos"], ["tan", "\\tan"], ["sec", "\\sec"], ["csc", "\\csc"], ["cot", "\\cot"],
-      ["sin²", "\\sin^2"], ["cos²", "\\cos^2"], ["sec²", "\\sec^2"], ["arctan", "\\arctan"], ["sin⁻¹", "\\sin^{-1}"], ["tan⁻¹", "\\tan^{-1}"],
-      ["θ", "\\theta"], ["φ", "\\varphi"], ["α", "\\alpha"], ["β", "\\beta"], ["ω", "\\omega"], ["π", "\\pi"],
-      ["sin(u+φ)", "\\sin\\left(#0+\\varphi\\right)", 2], ["2 sin u cos u", "2\\sin u\\cos u", 2], ["R=√(a²+e²)", "R=\\sqrt{a^2+e^2}", 2]
+    "행렬": [
+      ["2×2 행렬", "\\begin{pmatrix}#0&#?\\\\ #?&#?\\end{pmatrix}", 2], ["3×3 행렬", "\\begin{pmatrix}#0&#?&#?\\\\ #?&#?&#?\\\\ #?&#?&#?\\end{pmatrix}", 2], ["세로 3칸", "\\begin{pmatrix}#0\\\\ #?\\\\ #?\\end{pmatrix}", 2],
+      ["첨가행렬 (A|B)", "\\Bigg(\\begin{array}{ccc|c}#0&#?&#?&#?\\\\ #?&#?&#?&#?\\\\ #?&#?&#?&#?\\end{array}\\Bigg)", 3], ["세로 2칸", "\\begin{pmatrix}#0\\\\ #?\\end{pmatrix}", 2], ["det", "\\det "],
+      ["A⁻¹", "#@^{-1}"], ["AX=B", "AX=B"], ["X=A⁻¹B", "X=A^{-1}B"], ["I", "I"], ["O", "O"], ["E", "E"],
+      ["(1행)", "\\text{(1행)}"], ["(2행)", "\\text{(2행)}"], ["(3행)", "\\text{(3행)}"], ["↔", "\\leftrightarrow "], ["→", "\\to "], ["×", "\\times"],
+      ["a₁₁", "a_{#?}"], ["x₁", "x_1"], ["x₂", "x_2"], ["x₃", "x_3"], ["y₁", "y_1"], ["≠ 0", "\\ne 0"]
     ],
-    "미적분": [
-      ["f(x)", "f(x)"], ["f′(x)", "f'(x)"], ["f″(x)", "f''(x)"], ["dy/dx", "\\frac{dy}{dx}"], ["d/dx", "\\frac{d}{dx}"], ["′", "'"],
-      ["lim", "\\lim_{#?\\to#?}"], ["→", "\\to"], ["∫", "\\int #0\\,dx"], ["∫ₐᵇ", "\\int_{#?}^{#?}#0\\,dx"], ["[F]ₐᵇ", "\\left[#0\\right]_{#?}^{#?}"], ["dx", "\\,dx"],
-      ["ln", "\\ln"], ["log", "\\log"], ["eˣ", "e^{#0}"], ["Σ", "\\sum_{#?}^{#?}"], ["Δ", "\\Delta"], ["|  |", "\\left|#0\\right|"],
-      ["평균값", "\\frac{1}{q-p}\\int_{p}^{q}f(x)\\,dx", 3], ["u=b(x−c)", "u=b(x-c)", 2], ["du/dx=b", "\\frac{du}{dx}=b", 1]
+    "변환": [
+      ["회전 θ", "\\begin{pmatrix}\\cos #0&-\\sin #?\\\\ \\sin #?&\\cos #?\\end{pmatrix}", 3], ["닮음 k", "\\begin{pmatrix}k&0\\\\ 0&k\\end{pmatrix}", 2], ["x축 대칭", "\\begin{pmatrix}1&0\\\\ 0&-1\\end{pmatrix}", 2],
+      ["y축 대칭", "\\begin{pmatrix}-1&0\\\\ 0&1\\end{pmatrix}", 2], ["원점 대칭", "\\begin{pmatrix}-1&0\\\\ 0&-1\\end{pmatrix}", 2], ["y=x 대칭", "\\begin{pmatrix}0&1\\\\ 1&0\\end{pmatrix}", 2],
+      ["sin", "\\sin"], ["cos", "\\cos"], ["θ", "\\theta"], ["°", "^{\\circ}"], ["√3/2", "\\frac{\\sqrt{3}}{2}"], ["1/2", "\\frac{1}{2}"],
+      ["g∘f", "g\\circ f"], ["∘", "\\circ "], ["f⁻¹", "f^{-1}"], ["(x,y)→(x′,y′)", "(x,y)\\to(x',y')", 3], ["x′", "x'"], ["y′", "y'"]
     ],
-    "모델 식": [
-      ["a sin(b(x−c))+d", "a\\sin\\left(b(x-c)\\right)+d", 3], ["a cos(b(x−c))+d", "a\\cos\\left(b(x-c)\\right)+d", 3],
-      ["a tan(b(x−c))+d", "a\\tan\\left(b(x-c)\\right)+d", 3], ["a sec(b(x−c))+d", "a\\sec\\left(b(x-c)\\right)+d", 3],
-      ["a csc(b(x−c))+d", "a\\csc\\left(b(x-c)\\right)+d", 3], ["a arctan(b(x−c))+d", "a\\arctan\\left(b(x-c)\\right)+d", 3],
-      ["a sin u + e cos u", "a\\sin u+e\\cos u", 3], ["a sin u + e sin 2u", "a\\sin u+e\\sin 2u", 3],
-      ["a sin²u + d", "a\\sin^2 u+d", 3], ["오차율", "\\frac{\\left|y-f(x)\\right|}{\\left|y\\right|}\\times100", 3]
+    "이차함수·검증": [
+      ["y=ax²+bx+c", "y=ax^2+bx+c", 3], ["연립 3식", "\\begin{cases}#0\\\\ #?\\\\ #?\\end{cases}", 2], ["ax²+bx+c=y", "a#?^2+b#?+c=#?", 2],
+      ["오차 y−f(x)", "y-f(x)", 2], ["오차율", "\\frac{\\left|y-f(x)\\right|}{y_{\\max}-y_{\\min}}\\times100", 3], ["|det|", "\\left|\\det #0\\right|", 1],
+      ["삼각형 넓이", "\\frac{1}{2}\\left|x_1(y_2-y_3)+x_2(y_3-y_1)+x_3(y_1-y_2)\\right|", 3], ["넓이의 비", "\\frac{S'}{S}", 1], ["f(x)", "f(x)"], ["f(x)=", "f(x)="]
     ],
     "문자·기호": [
       ["x", "x"], ["y", "y"], ["a", "a"], ["b", "b"], ["c", "c"], ["d", "d"], ["e", "e"], ["g", "g"], ["p", "p"], ["q", "q"], ["t", "t"], ["u", "u"],
-      ["α", "\\alpha"], ["β", "\\beta"], ["γ", "\\gamma"], ["δ", "\\delta"], ["λ", "\\lambda"], ["μ", "\\mu"], ["σ", "\\sigma"], ["Ω", "\\Omega"],
+      ["A", "A"], ["B", "B"], ["X", "X"], ["M", "M"], ["k", "k"], ["S", "S"], ["θ", "\\theta"], ["α", "\\alpha"],
       ["∴", "\\therefore"], ["∵", "\\because"], ["⇒", "\\Rightarrow"], ["⇔", "\\Leftrightarrow"], ["∈", "\\in"], ["글자", "\\text{#0}"]
     ],
     "숫자": [
