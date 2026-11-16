@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>포물선 변환 문양</title>
+<style>
+:root{--text-primary:#1f1f1f;--text-secondary:#5f5f5f;--bg:#fff;--border:#d0d0d0;--border-strong:#9a9a9a;
+--bg-accent:#e8f0fe;--text-accent:#174ea6;--border-accent:#1a73e8}
+@media (prefers-color-scheme: dark){:root{--text-primary:#ececec;--text-secondary:#b0b0b0;--bg:#1e1e1e;--border:#444;--border-strong:#777;
+--bg-accent:#1c2b44;--text-accent:#9cc1ff;--border-accent:#5b8def}}
+body{margin:0;background:var(--bg);color:var(--text-primary);font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:20px;margin:0 0 4px}
+.sub{font-size:14px;color:var(--text-secondary);margin:0 0 16px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+.row span.l{font-size:13px;color:var(--text-secondary);min-width:64px}
+button{font:inherit;font-size:14px;padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text-primary);cursor:pointer}
+button[aria-pressed="true"]{background:var(--bg-accent);color:var(--text-accent);border-color:var(--border-accent);font-weight:600}
+svg#cv{display:block;max-width:100%;height:auto}
+.ts{font-size:12px;fill:var(--text-secondary)}
+.info{font-size:15px;color:var(--text-secondary);margin:8px 0 0;line-height:1.6}
+</style></head><body><main>
+<h1>포물선 변환 문양</h1>
+<p class="sub">곡선과 변환을 골라, 같은 포물선이 행렬 변환에 따라 어떤 문양이 되는지 살펴보세요.</p>
+<div class="row"><span class="l">학생 곡선</span><span id="curves"></span></div>
+<div class="row"><span class="l">변환</span><span id="pats"></span></div>
+<svg id="cv" viewBox="150 8 380 392" role="img"><title>변환 문양</title></svg>
+<p class="info" id="info"></p>
+</main>
+<script>
+const C=[
+ {k:"f",n:"분수 물줄기",d:"원점=분수 입구",f:x=>-0.5*x*x+2*x,x1:0,x2:4,tex:"y = −0.5x² + 2x"},
+ {k:"a",n:"다리 아치",d:"꼭짓점이 y축 위",f:x=>-x*x+4,x1:-2,x2:2,tex:"y = −x² + 4"},
+ {k:"b",n:"그릇 단면",d:"꼭짓점=원점",f:x=>0.5*x*x,x1:-2,x2:2,tex:"y = 0.5x²"}];
+const R=d=>{const t=d*Math.PI/180,c=Math.cos(t),s=Math.sin(t);return [[c,-s],[s,c]];};
+const mul=(B,A)=>[[B[0][0]*A[0][0]+B[0][1]*A[1][0],B[0][0]*A[0][1]+B[0][1]*A[1][1]],[B[1][0]*A[0][0]+B[1][1]*A[1][0],B[1][0]*A[0][1]+B[1][1]*A[1][1]]];
+const P=[
+ {k:"m",n:"거울 (y축 대칭)",M:[[-1,0],[0,1]],rep:1,txt:"y축 대칭 1번. det = −1이라 넓이는 같고 좌우가 뒤집힙니다."},
+ {k:"c",n:"네잎 (90° × 4)",M:R(90),rep:4,txt:"90° 회전을 4번. M⁴ = I라서 4번째에 제자리로 돌아옵니다."},
+ {k:"s",n:"눈결정 (60° × 6)",M:R(60),rep:6,txt:"60° 회전을 6번. M⁶ = I, det = 1이라 크기가 그대로입니다."},
+ {k:"v",n:"소용돌이 (30° 다음 닮음 0.85, × 12)",M:mul([[0.85,0],[0,0.85]],R(30)),rep:12,txt:"회전과 닮음의 합성을 12번. det = 0.85² ≈ 0.72라 넓이가 매번 약 0.72배로 줄어듭니다."},
+ {k:"t",n:"늘이기·기울이기 (직접 입력)",M:[[1,0.6],[0,1.5]],rep:1,txt:"행렬 (1 0.6 / 0 1.5)을 직접 넣은 예. 대칭·닮음·회전이 아니어도 선형변환이며 det = 1.5입니다."}];
+const COL=["#7F77DD","#1D9E75","#D85A30","#D4537E","#378ADD","#BA7517"];
+let ci=0,pi=2;
+const mk=(host,arr,get,set)=>{const h=document.getElementById(host);h.innerHTML="";arr.forEach((o,i)=>{const b=document.createElement("button");b.textContent=o.n;b.style.marginRight="6px";b.style.marginBottom="4px";b.setAttribute("aria-pressed",String(i===get()));b.onclick=()=>{set(i);draw();};h.appendChild(b);});};
+const ap=(M,p)=>({x:M[0][0]*p.x+M[0][1]*p.y,y:M[1][0]*p.x+M[1][1]*p.y});
+function draw(){
+ mk("curves",C,()=>ci,i=>ci=i); mk("pats",P,()=>pi,i=>pi=i);
+ const c=C[ci],p=P[pi],base=[...Array(61)].map((_,i)=>{const x=c.x1+(c.x2-c.x1)*i/60;return {x,y:c.f(x)};});
+ const sh=[{pts:base,col:"var(--text-primary)",w:2.6}];let M=[[1,0],[0,1]];
+ for(let r=1;r<=p.rep;r++){M=mul(p.M,M);sh.push({pts:base.map(q=>ap(M,q)),col:COL[(r-1)%COL.length],w:1.8});}
+ const all=[{x:0,y:0}];sh.forEach(s=>s.pts.forEach(q=>all.push(q)));
+ let x1=Math.min(...all.map(q=>q.x)),x2=Math.max(...all.map(q=>q.x)),y1=Math.min(...all.map(q=>q.y)),y2=Math.max(...all.map(q=>q.y));
+ const sp=Math.max(x2-x1,y2-y1,1)*1.1,cx=(x1+x2)/2,cy=(y1+y2)/2;x1=cx-sp/2;y1=cy-sp/2;
+ const Z=350,L=165,T=20,sx=x=>L+(x-x1)/sp*Z,sy=y=>T+Z-(y-y1)/sp*Z;
+ let g=`<title>변환 문양</title><desc>${c.n}에 ${p.n}을 적용한 그림</desc><rect x="${L}" y="${T}" width="${Z}" height="${Z}" rx="4" fill="none" stroke="var(--border)" stroke-width="0.5"/>`;
+ g+=`<line x1="${sx(0)}" x2="${sx(0)}" y1="${T}" y2="${T+Z}" stroke="var(--border-strong)" stroke-width="0.8"/><line x1="${L}" x2="${L+Z}" y1="${sy(0)}" y2="${sy(0)}" stroke="var(--border-strong)" stroke-width="0.8"/>`;
+ g+=`<circle cx="${sx(0)}" cy="${sy(0)}" r="3" fill="var(--text-primary)"/><text class="ts" x="${sx(0)+6}" y="${sy(0)+14}">원점</text>`;
+ sh.slice().reverse().forEach(s=>{g+=`<path d="${s.pts.map((q,i)=>(i?"L":"M")+sx(q.x).toFixed(1)+","+sy(q.y).toFixed(1)).join("")}" fill="none" stroke="${s.col}" stroke-width="${s.w}" stroke-linecap="round"/>`;});
+ g+=`<text class="ts" x="${L}" y="${T+Z+16}">검은 선: 처음 곡선 ${c.tex} (${c.d})</text>`;
+ document.getElementById("cv").innerHTML=g;
+ document.getElementById("info").textContent=p.txt+(ci===0&&pi>0&&pi<4?" 원점이 곡선 끝(분수 입구)에 있어 곡선이 원점에서 뻗어 나가는 꽃잎 모양이 됩니다.":ci===1&&pi>0&&pi<4?" 원점이 곡선 아래쪽 안에 있어 곡선이 원점을 둘러싼 고리 모양이 됩니다.":ci===2&&pi>0&&pi<4?" 꼭짓점이 원점이라 컵 모양이 원점에서 여러 방향으로 퍼집니다.":"");
+}
+draw();
+</script></body></html>
